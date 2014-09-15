@@ -19,7 +19,7 @@ namespace TestWCF
 			return 0;
 		}
 
-		public void TestByRef(ref int test)
+		public void TestByRef(ref int test, long foo)
 		{
 			test = -test;
 		}

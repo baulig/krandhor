@@ -16,6 +16,6 @@ namespace TestWCF
 		int Delay(int timespan);
 
 		[OperationContract]
-		void TestByRef(ref int test);
+		void TestByRef(ref int test, long foo);
 	}
 }
