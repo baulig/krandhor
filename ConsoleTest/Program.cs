@@ -31,7 +31,7 @@ namespace TestWCF
 		void Run ()
 		{
 			int test = 8;
-			client.TestByRefAsync(test);
+			client.TestByRefAsync(test, 2048);
 			asyncEvent.WaitOne();
 		}
 

@@ -24,7 +24,7 @@ public interface IMyService
     int EndDelay(System.IAsyncResult result);
     
     [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://tempuri.org/IMyService/TestByRef", ReplyAction="http://tempuri.org/IMyService/TestByRefResponse")]
-    System.IAsyncResult BeginTestByRef(ref int test, System.AsyncCallback callback, object asyncState);
+    System.IAsyncResult BeginTestByRef(ref int test, long foo, System.AsyncCallback callback, object asyncState);
     
     void EndTestByRef(ref int test, System.IAsyncResult result);
 }
@@ -228,9 +228,9 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
     }
     
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    System.IAsyncResult IMyService.BeginTestByRef(ref int test, System.AsyncCallback callback, object asyncState)
+    System.IAsyncResult IMyService.BeginTestByRef(ref int test, long foo, System.AsyncCallback callback, object asyncState)
     {
-        return base.Channel.BeginTestByRef(ref test, callback, asyncState);
+        return base.Channel.BeginTestByRef(ref test, foo, callback, asyncState);
     }
     
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -242,7 +242,8 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
     private System.IAsyncResult OnBeginTestByRef(object[] inValues, System.AsyncCallback callback, object asyncState)
     {
         int test = ((int)(inValues[0]));
-        return ((IMyService)(this)).BeginTestByRef(ref test, callback, asyncState);
+        long foo = ((long)(inValues[1]));
+        return ((IMyService)(this)).BeginTestByRef(ref test, foo, callback, asyncState);
     }
     
     private object[] OnEndTestByRef(System.IAsyncResult result)
@@ -262,12 +263,12 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
         }
     }
     
-    public void TestByRefAsync(int test)
+    public void TestByRefAsync(int test, long foo)
     {
-        this.TestByRefAsync(test, null);
+        this.TestByRefAsync(test, foo, null);
     }
     
-    public void TestByRefAsync(int test, object userState)
+    public void TestByRefAsync(int test, long foo, object userState)
     {
         if ((this.onBeginTestByRefDelegate == null))
         {
@@ -282,7 +283,8 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
             this.onTestByRefCompletedDelegate = new System.Threading.SendOrPostCallback(this.OnTestByRefCompleted);
         }
         base.InvokeAsync(this.onBeginTestByRefDelegate, new object[] {
-                    test}, this.onEndTestByRefDelegate, this.onTestByRefCompletedDelegate, userState);
+                    test,
+                    foo}, this.onEndTestByRefDelegate, this.onTestByRefCompletedDelegate, userState);
     }
     
     private System.IAsyncResult OnBeginOpen(object[] inValues, System.AsyncCallback callback, object asyncState)
@@ -397,10 +399,11 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
             return _result;
         }
         
-        public System.IAsyncResult BeginTestByRef(ref int test, System.AsyncCallback callback, object asyncState)
+        public System.IAsyncResult BeginTestByRef(ref int test, long foo, System.AsyncCallback callback, object asyncState)
         {
-            object[] _args = new object[1];
+            object[] _args = new object[2];
             _args[0] = test;
+            _args[1] = foo;
             System.IAsyncResult _result = base.BeginInvoke("TestByRef", _args, callback, asyncState);
             test = ((int)(_args[0]));
             return _result;
