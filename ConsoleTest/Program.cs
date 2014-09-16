@@ -25,9 +25,11 @@ namespace TestWCF
 		Program ()
 		{
 			client = ServiceClientHelper.CreateServiceClient ();
+			#if ASYNC
 			asyncEvent = new AutoResetEvent (false);
 			client.TestOutCompleted += TestOutCompleted;
 			client.TestByRefCompleted += TestByRefCompleted;
+			#endif
 		}
 
 		void Test ()
@@ -44,12 +46,14 @@ namespace TestWCF
 			}
 		}
 
+		#if ASYNC
 		void Run ()
 		{
 			int test = 8;
 			client.TestByRefAsync(2048, test);
 			client.TestOutAsync ();
 			asyncEvent.WaitOne ();
+
 		}
 
 		void TestOutCompleted (object sender, TestOutCompletedEventArgs e)
@@ -62,5 +66,16 @@ namespace TestWCF
 			Console.WriteLine ("TEST: {0} {1}", e.test, e.time);
 			asyncEvent.Set ();
 		}
+		#else
+		void Run ()
+		{
+			int test = 8;
+			DateTime time;
+			client.TestByRef (2048, ref test, out time);
+			Console.WriteLine ("TEST: {0} {1}", test, time);
+			test = client.TestOut (out time);
+			Console.WriteLine ("TEST #1: {0} {1}", test, time);
+		}
+		#endif
 	}
 }
