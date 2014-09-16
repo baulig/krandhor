@@ -23,10 +23,15 @@ public interface IMyService
     
     int EndDelay(System.IAsyncResult result);
     
-    [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://tempuri.org/IMyService/TestByRef", ReplyAction="http://tempuri.org/IMyService/TestByRefResponse")]
-    System.IAsyncResult BeginTestByRef(ref int test, long foo, System.AsyncCallback callback, object asyncState);
+    [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://tempuri.org/IMyService/TestOut", ReplyAction="http://tempuri.org/IMyService/TestOutResponse")]
+    System.IAsyncResult BeginTestOut(System.AsyncCallback callback, object asyncState);
     
-    void EndTestByRef(ref int test, System.IAsyncResult result);
+    int EndTestOut(out System.DateTime time, System.IAsyncResult result);
+    
+    [System.ServiceModel.OperationContractAttribute(AsyncPattern=true, Action="http://tempuri.org/IMyService/TestByRef", ReplyAction="http://tempuri.org/IMyService/TestByRefResponse")]
+    System.IAsyncResult BeginTestByRef(long foo, ref int test, System.AsyncCallback callback, object asyncState);
+    
+    void EndTestByRef(ref int test, out System.DateTime time, System.IAsyncResult result);
 }
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -59,6 +64,38 @@ public partial class DelayCompletedEventArgs : System.ComponentModel.AsyncComple
 
 [System.Diagnostics.DebuggerStepThroughAttribute()]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+public partial class TestOutCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs
+{
+    
+    private object[] results;
+    
+    public TestOutCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
+            base(exception, cancelled, userState)
+    {
+        this.results = results;
+    }
+    
+    public System.DateTime time
+    {
+        get
+        {
+            base.RaiseExceptionIfNecessary();
+            return ((System.DateTime)(this.results[0]));
+        }
+    }
+    
+    public int Result
+    {
+        get
+        {
+            base.RaiseExceptionIfNecessary();
+            return ((int)(this.results[1]));
+        }
+    }
+}
+
+[System.Diagnostics.DebuggerStepThroughAttribute()]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
 public partial class TestByRefCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs
 {
     
@@ -78,6 +115,15 @@ public partial class TestByRefCompletedEventArgs : System.ComponentModel.AsyncCo
             return ((int)(this.results[0]));
         }
     }
+    
+    public System.DateTime time
+    {
+        get
+        {
+            base.RaiseExceptionIfNecessary();
+            return ((System.DateTime)(this.results[1]));
+        }
+    }
 }
 
 [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -90,6 +136,12 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
     private EndOperationDelegate onEndDelayDelegate;
     
     private System.Threading.SendOrPostCallback onDelayCompletedDelegate;
+    
+    private BeginOperationDelegate onBeginTestOutDelegate;
+    
+    private EndOperationDelegate onEndTestOutDelegate;
+    
+    private System.Threading.SendOrPostCallback onTestOutCompletedDelegate;
     
     private BeginOperationDelegate onBeginTestByRefDelegate;
     
@@ -164,6 +216,8 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
     
     public event System.EventHandler<DelayCompletedEventArgs> DelayCompleted;
     
+    public event System.EventHandler<TestOutCompletedEventArgs> TestOutCompleted;
+    
     public event System.EventHandler<TestByRefCompletedEventArgs> TestByRefCompleted;
     
     public event System.EventHandler<System.ComponentModel.AsyncCompletedEventArgs> OpenCompleted;
@@ -228,30 +282,89 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
     }
     
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    System.IAsyncResult IMyService.BeginTestByRef(ref int test, long foo, System.AsyncCallback callback, object asyncState)
+    System.IAsyncResult IMyService.BeginTestOut(System.AsyncCallback callback, object asyncState)
     {
-        return base.Channel.BeginTestByRef(ref test, foo, callback, asyncState);
+        return base.Channel.BeginTestOut(callback, asyncState);
     }
     
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    void IMyService.EndTestByRef(ref int test, System.IAsyncResult result)
+    int IMyService.EndTestOut(out System.DateTime time, System.IAsyncResult result)
     {
-        base.Channel.EndTestByRef(ref test, result);
+        return base.Channel.EndTestOut(out time, result);
+    }
+    
+    private System.IAsyncResult OnBeginTestOut(object[] inValues, System.AsyncCallback callback, object asyncState)
+    {
+        return ((IMyService)(this)).BeginTestOut(callback, asyncState);
+    }
+    
+    private object[] OnEndTestOut(System.IAsyncResult result)
+    {
+        System.DateTime time = this.GetDefaultValueForInitialization<System.DateTime>();
+        int retVal = ((IMyService)(this)).EndTestOut(out time, result);
+        return new object[] {
+                time,
+                retVal};
+    }
+    
+    private void OnTestOutCompleted(object state)
+    {
+        if ((this.TestOutCompleted != null))
+        {
+            InvokeAsyncCompletedEventArgs e = ((InvokeAsyncCompletedEventArgs)(state));
+            this.TestOutCompleted(this, new TestOutCompletedEventArgs(e.Results, e.Error, e.Cancelled, e.UserState));
+        }
+    }
+    
+    public void TestOutAsync()
+    {
+        this.TestOutAsync(null);
+    }
+    
+    public void TestOutAsync(object userState)
+    {
+        if ((this.onBeginTestOutDelegate == null))
+        {
+            this.onBeginTestOutDelegate = new BeginOperationDelegate(this.OnBeginTestOut);
+        }
+        if ((this.onEndTestOutDelegate == null))
+        {
+            this.onEndTestOutDelegate = new EndOperationDelegate(this.OnEndTestOut);
+        }
+        if ((this.onTestOutCompletedDelegate == null))
+        {
+            this.onTestOutCompletedDelegate = new System.Threading.SendOrPostCallback(this.OnTestOutCompleted);
+        }
+        base.InvokeAsync(this.onBeginTestOutDelegate, null, this.onEndTestOutDelegate, this.onTestOutCompletedDelegate, userState);
+    }
+    
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    System.IAsyncResult IMyService.BeginTestByRef(long foo, ref int test, System.AsyncCallback callback, object asyncState)
+    {
+        return base.Channel.BeginTestByRef(foo, ref test, callback, asyncState);
+    }
+    
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    void IMyService.EndTestByRef(ref int test, out System.DateTime time, System.IAsyncResult result)
+    {
+        base.Channel.EndTestByRef(ref test, out time, result);
     }
     
     private System.IAsyncResult OnBeginTestByRef(object[] inValues, System.AsyncCallback callback, object asyncState)
     {
-        int test = ((int)(inValues[0]));
-        long foo = ((long)(inValues[1]));
-        return ((IMyService)(this)).BeginTestByRef(ref test, foo, callback, asyncState);
+        long foo = ((long)(inValues[0]));
+        int test = ((int)(inValues[1]));
+        return ((IMyService)(this)).BeginTestByRef(foo, ref test, callback, asyncState);
     }
     
     private object[] OnEndTestByRef(System.IAsyncResult result)
     {
         int test = this.GetDefaultValueForInitialization<int>();
-        ((IMyService)(this)).EndTestByRef(ref test, result);
+        System.DateTime time = this.GetDefaultValueForInitialization<System.DateTime>();
+        ((IMyService)(this)).EndTestByRef(ref test, out time, result);
         return new object[] {
-                test};
+                test,
+                time};
     }
     
     private void OnTestByRefCompleted(object state)
@@ -263,12 +376,12 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
         }
     }
     
-    public void TestByRefAsync(int test, long foo)
+    public void TestByRefAsync(long foo, int test)
     {
-        this.TestByRefAsync(test, foo, null);
+        this.TestByRefAsync(foo, test, null);
     }
     
-    public void TestByRefAsync(int test, long foo, object userState)
+    public void TestByRefAsync(long foo, int test, object userState)
     {
         if ((this.onBeginTestByRefDelegate == null))
         {
@@ -283,8 +396,8 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
             this.onTestByRefCompletedDelegate = new System.Threading.SendOrPostCallback(this.OnTestByRefCompleted);
         }
         base.InvokeAsync(this.onBeginTestByRefDelegate, new object[] {
-                    test,
-                    foo}, this.onEndTestByRefDelegate, this.onTestByRefCompletedDelegate, userState);
+                    foo,
+                    test}, this.onEndTestByRefDelegate, this.onTestByRefCompletedDelegate, userState);
     }
     
     private System.IAsyncResult OnBeginOpen(object[] inValues, System.AsyncCallback callback, object asyncState)
@@ -399,22 +512,38 @@ public partial class MyServiceClient : System.ServiceModel.ClientBase<IMyService
             return _result;
         }
         
-        public System.IAsyncResult BeginTestByRef(ref int test, long foo, System.AsyncCallback callback, object asyncState)
+        public System.IAsyncResult BeginTestOut(System.AsyncCallback callback, object asyncState)
         {
-            object[] _args = new object[2];
-            _args[0] = test;
-            _args[1] = foo;
-            System.IAsyncResult _result = base.BeginInvoke("TestByRef", _args, callback, asyncState);
-            test = ((int)(_args[0]));
+            object[] _args = new object[0];
+            System.IAsyncResult _result = base.BeginInvoke("TestOut", _args, callback, asyncState);
             return _result;
         }
         
-        public void EndTestByRef(ref int test, System.IAsyncResult result)
+        public int EndTestOut(out System.DateTime time, System.IAsyncResult result)
         {
             object[] _args = new object[1];
+            int _result = ((int)(base.EndInvoke("TestOut", _args, result)));
+            time = ((System.DateTime)(_args[0]));
+            return _result;
+        }
+        
+        public System.IAsyncResult BeginTestByRef(long foo, ref int test, System.AsyncCallback callback, object asyncState)
+        {
+            object[] _args = new object[2];
+            _args[0] = foo;
+            _args[1] = test;
+            System.IAsyncResult _result = base.BeginInvoke("TestByRef", _args, callback, asyncState);
+            test = ((int)(_args[1]));
+            return _result;
+        }
+        
+        public void EndTestByRef(ref int test, out System.DateTime time, System.IAsyncResult result)
+        {
+            object[] _args = new object[2];
             _args[0] = test;
             base.EndInvoke("TestByRef", _args, result);
             test = ((int)(_args[0]));
+            time = ((System.DateTime)(_args[1]));
         }
     }
 }

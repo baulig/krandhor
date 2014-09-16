@@ -15,30 +15,52 @@ namespace TestWCF
 		MyServiceClient client;
 		AutoResetEvent asyncEvent;
 
-		static void Main(string[] args)
+		static void Main (string[] args)
 		{
-			var program = new Program();
-			program.Run();
+			var program = new Program ();
+			program.Test ();
+			program.Run ();
 		}
 
 		Program ()
 		{
-			client = ServiceClientHelper.CreateServiceClient();
-			asyncEvent = new AutoResetEvent(false);
+			client = ServiceClientHelper.CreateServiceClient ();
+			asyncEvent = new AutoResetEvent (false);
+			client.TestOutCompleted += TestOutCompleted;
 			client.TestByRefCompleted += TestByRefCompleted;
+		}
+
+		void Test ()
+		{
+			foreach (var op in client.Endpoint.Contract.Operations) {
+				Console.WriteLine ("OP: {0}", op.Name);
+				foreach (var message in op.Messages) {
+					Console.WriteLine ("MESSAGE: {0}", message.Action);
+					var body = message.Body;
+					foreach (var part in body.Parts) {
+						Console.WriteLine ("PART: {0}", part.Name);
+					}
+				}
+			}
 		}
 
 		void Run ()
 		{
 			int test = 8;
-			client.TestByRefAsync(test, 2048);
-			asyncEvent.WaitOne();
+			client.TestByRefAsync(2048, test);
+			client.TestOutAsync ();
+			asyncEvent.WaitOne ();
 		}
 
-		void TestByRefCompleted(object sender, TestByRefCompletedEventArgs e)
+		void TestOutCompleted (object sender, TestOutCompletedEventArgs e)
 		{
-			Console.WriteLine("TEST: {0}", e.test);
-			asyncEvent.Set();
+			Console.WriteLine ("TEST: {0} {1}", e.Result, e.time);
+		}
+
+		void TestByRefCompleted (object sender, TestByRefCompletedEventArgs e)
+		{
+			Console.WriteLine ("TEST: {0} {1}", e.test, e.time);
+			asyncEvent.Set ();
 		}
 	}
 }
